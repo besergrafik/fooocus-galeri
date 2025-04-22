@@ -20,7 +20,7 @@
       gap: 15px;
     }
     .gallery img {
-      width: 75px;
+      width: 100px;
       height: auto;
       object-fit: cover;
       border-radius: 8px;
@@ -30,9 +30,9 @@
     }
     .gallery img:hover {
       transform: scale(1.08);
+      box-shadow: 0 0 12px rgba(255, 255, 255, 0.5);
     }
 
-    /* Lightbox stilleri */
     .lightbox {
       position: fixed;
       top: 0; left: 0;
@@ -46,39 +46,95 @@
       opacity: 0;
       transition: 0.3s;
     }
+    .lightbox.active {
+      visibility: visible;
+      opacity: 1;
+    }
     .lightbox img {
       max-width: 90%;
       max-height: 85%;
       border-radius: 10px;
     }
-    .lightbox.active {
-      visibility: visible;
-      opacity: 1;
+
+    .arrow {
+      position: absolute;
+      top: 50%;
+      font-size: 40px;
+      color: white;
+      background: rgba(0,0,0,0.3);
+      border: none;
+      padding: 10px;
+      cursor: pointer;
+      z-index: 10000;
+      user-select: none;
+      transform: translateY(-50%);
     }
+    .arrow:hover {
+      background: rgba(255,255,255,0.1);
+    }
+    .arrow-left { left: 20px; }
+    .arrow-right { right: 20px; }
   </style>
 </head>
 <body>
 
   <h1>Fooocus Galerim</h1>
-  <div class="gallery">
-    <img src="resimler/fooocus3.jpg" alt="Görsel 1" onclick="openLightbox(this.src)">
-    <img src="resimler/fooocus4.jpg" alt="Görsel 2" onclick="openLightbox(this.src)">
-    <img src="resimler/fooocus3.jpg" alt="Görsel 3" onclick="openLightbox(this.src)">
-    <img src="resimler/fooocus4.jpg" alt="Görsel 4" onclick="openLightbox(this.src)">
+  <div class="gallery" id="gallery">
+    <img src="resimler/fooocus3.jpg" alt="Görsel 1">
+    <img src="resimler/fooocus4.jpg" alt="Görsel 2">
+    <img src="resimler/fooocus3.jpg" alt="Görsel 3">
+    <img src="resimler/fooocus4.jpg" alt="Görsel 4">
   </div>
 
-  <div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <div class="lightbox" id="lightbox">
+    <button class="arrow arrow-left" onclick="prevImage()">&#8592;</button>
     <img id="lightbox-img" src="">
+    <button class="arrow arrow-right" onclick="nextImage()">&#8594;</button>
   </div>
 
   <script>
-    function openLightbox(src) {
-      document.getElementById("lightbox-img").src = src;
+    const images = Array.from(document.querySelectorAll('.gallery img'));
+    let currentIndex = 0;
+
+    images.forEach((img, index) => {
+      img.addEventListener('click', () => {
+        currentIndex = index;
+        showImage();
+      });
+    });
+
+    function showImage() {
+      document.getElementById("lightbox-img").src = images[currentIndex].src;
       document.getElementById("lightbox").classList.add("active");
     }
+
     function closeLightbox() {
       document.getElementById("lightbox").classList.remove("active");
     }
+
+    function nextImage() {
+      currentIndex = (currentIndex + 1) % images.length;
+      showImage();
+    }
+
+    function prevImage() {
+      currentIndex = (currentIndex - 1 + images.length) % images.length;
+      showImage();
+    }
+
+    // ESC ile kapatma
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") closeLightbox();
+      if (e.key === "ArrowRight") nextImage();
+      if (e.key === "ArrowLeft") prevImage();
+    });
+
+    // Lightbox arka plana tıklayınca kapanır
+    document.getElementById("lightbox").addEventListener("click", (e) => {
+      if (e.target.id === "lightbox" || e.target.tagName === "IMG") {
+        closeLightbox();
+      }
+    });
   </script>
 
 </body>
