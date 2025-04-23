@@ -6,13 +6,41 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f5f5f5;
       margin: 0;
       padding: 20px;
+      background: linear-gradient(135deg, #fbe8eb, #e6f7fb, #f3f5e6);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
     }
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
     h1 {
       text-align: center;
+      margin-bottom: 10px;
     }
+
+    .filters {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .filters button {
+      background-color: #ffffffcc;
+      border: none;
+      padding: 10px 15px;
+      margin: 0 5px;
+      border-radius: 20px;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      transition: background-color 0.3s;
+    }
+    .filters button:hover {
+      background-color: #ffd2dc;
+    }
+
     .gallery {
       display: flex;
       flex-wrap: wrap;
@@ -59,12 +87,12 @@
     .arrow {
       position: absolute;
       top: 50%;
-      font-size: 60px;
+      font-size: 50px;
       color: white;
       background: rgba(255, 255, 255, 0.1);
       border: 2px solid white;
       border-radius: 50%;
-      padding: 10px 18px;
+      padding: 5px 12px;
       cursor: pointer;
       z-index: 10000;
       user-select: none;
@@ -74,17 +102,15 @@
     .arrow:hover {
       background: rgba(255,255,255,0.3);
       transform: translateY(-50%) scale(1.1);
-      color: #fff;
-      border-color: #fff;
     }
-    .arrow-left { left: 30px; }
-    .arrow-right { right: 30px; }
+    .arrow-left { left: 10px; }
+    .arrow-right { right: 10px; }
 
     .close-btn {
       position: absolute;
-      top: 20px;
-      right: 30px;
-      font-size: 30px;
+      top: 10px;
+      right: 20px;
+      font-size: 28px;
       color: white;
       background: transparent;
       border: none;
@@ -95,11 +121,23 @@
     .close-btn:hover {
       transform: scale(1.2);
     }
+
+    .hidden {
+      display: none;
+    }
   </style>
 </head>
 <body>
 
   <h1>Fooocus Galerim</h1>
+
+  <div class="filters">
+    <button onclick="filterCategory('all')">Tümü</button>
+    <button onclick="filterCategory('manzara')">Manzara</button>
+    <button onclick="filterCategory('portre')">Portre</button>
+    <button onclick="filterCategory('fantezi')">Fantezi</button>
+  </div>
+
   <div class="gallery" id="gallery"></div>
 
   <div class="lightbox" id="lightbox">
@@ -110,21 +148,43 @@
   </div>
 
   <script>
-    const imageCount = 100; // Kaç görsel varsa burada belirle
+    const imageList = [
+      { file: 'fooocus1.jpg', category: 'manzara' },
+      { file: 'fooocus2.jpg', category: 'portre' },
+      { file: 'fooocus3.jpg', category: 'fantezi' },
+      { file: 'fooocus4.jpg', category: 'manzara' },
+      { file: 'fooocus5.jpg', category: 'portre' },
+      { file: 'fooocus6.jpg', category: 'fantezi' }
+    ];
+
     const gallery = document.getElementById('gallery');
     const images = [];
     let currentIndex = 0;
 
-    for (let i = 1; i <= imageCount; i++) {
-      const img = document.createElement('img');
-      img.src = `resimler/fooocus${i}.jpg`;
-      img.alt = `Görsel ${i}`;
-      img.addEventListener('click', () => {
-        currentIndex = i - 1;
-        showImage();
+    function createGallery() {
+      gallery.innerHTML = "";
+      imageList.forEach((imgData, index) => {
+        const img = document.createElement('img');
+        img.src = `resimler/${imgData.file}`;
+        img.alt = imgData.category;
+        img.dataset.category = imgData.category;
+        img.addEventListener('click', () => {
+          currentIndex = index;
+          showImage();
+        });
+        gallery.appendChild(img);
+        images.push(img);
       });
-      gallery.appendChild(img);
-      images.push(img);
+    }
+
+    function filterCategory(category) {
+      images.forEach((img, i) => {
+        if (category === 'all' || img.dataset.category === category) {
+          img.classList.remove('hidden');
+        } else {
+          img.classList.add('hidden');
+        }
+      });
     }
 
     function showImage() {
@@ -137,12 +197,16 @@
     }
 
     function nextImage() {
-      currentIndex = (currentIndex + 1) % images.length;
+      do {
+        currentIndex = (currentIndex + 1) % images.length;
+      } while (images[currentIndex].classList.contains("hidden"));
       showImage();
     }
 
     function prevImage() {
-      currentIndex = (currentIndex - 1 + images.length) % images.length;
+      do {
+        currentIndex = (currentIndex - 1 + images.length) % images.length;
+      } while (images[currentIndex].classList.contains("hidden"));
       showImage();
     }
 
@@ -157,6 +221,8 @@
         closeLightbox();
       }
     });
+
+    createGallery();
   </script>
 
 </body>
