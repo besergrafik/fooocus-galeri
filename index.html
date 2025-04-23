@@ -113,6 +113,24 @@
 
   function closeLightbox() {
     lightbox.classList.remove("active");
+    let startX = 0;
+
+  document.getElementById("lightbox").addEventListener("touchstart", function(e) {
+    startX = e.changedTouches[0].screenX;
+  });
+
+  document.getElementById("lightbox").addEventListener("touchend", function(e) {
+    const endX = e.changedTouches[0].screenX;
+    const deltaX = endX - startX;
+
+    if (Math.abs(deltaX) > 50) { // minimum hareket mesafesi
+      if (deltaX < 0) {
+        nextImage();  // sola kaydır → ileri
+      } else {
+        prevImage();  // sağa kaydır → geri
+      }
+    }
+  });
   }
 </script>
 
