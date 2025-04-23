@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <title>Fooocus Galeri</title>
+  <title>Galerim</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -17,50 +17,25 @@
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
-
     h1 {
       text-align: center;
-      margin-bottom: 10px;
     }
-
-    .filters {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    .filters button {
-      background-color: #ffffffcc;
-      border: none;
-      padding: 10px 15px;
-      margin: 0 5px;
-      border-radius: 20px;
-      cursor: pointer;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      transition: background-color 0.3s;
-    }
-    .filters button:hover {
-      background-color: #ffd2dc;
-    }
-
     .gallery {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
-      gap: 15px;
+      gap: 10px;
     }
     .gallery img {
       width: 100px;
-      height: auto;
-      object-fit: cover;
-      border-radius: 8px;
       cursor: pointer;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
       transition: transform 0.2s ease;
     }
     .gallery img:hover {
-      transform: scale(1.08);
-      box-shadow: 0 0 12px rgba(255, 255, 255, 0.5);
+      transform: scale(1.05);
     }
-
     .lightbox {
       position: fixed;
       top: 0; left: 0;
@@ -83,29 +58,6 @@
       max-height: 85%;
       border-radius: 10px;
     }
-
-    .arrow {
-      position: absolute;
-      top: 50%;
-      font-size: 50px;
-      color: white;
-      background: rgba(255, 255, 255, 0.1);
-      border: 2px solid white;
-      border-radius: 50%;
-      padding: 5px 12px;
-      cursor: pointer;
-      z-index: 10000;
-      user-select: none;
-      transform: translateY(-50%);
-      transition: all 0.3s ease;
-    }
-    .arrow:hover {
-      background: rgba(255,255,255,0.3);
-      transform: translateY(-50%) scale(1.1);
-    }
-    .arrow-left { left: 10px; }
-    .arrow-right { right: 10px; }
-
     .close-btn {
       position: absolute;
       top: 10px;
@@ -116,120 +68,45 @@
       border: none;
       cursor: pointer;
       z-index: 10001;
-      transition: transform 0.2s;
-    }
-    .close-btn:hover {
-      transform: scale(1.2);
-    }
-
-    .hidden {
-      display: none;
     }
   </style>
 </head>
 <body>
 
-  <h1>Fooocus Galerim</h1>
+<h1>Galerim</h1>
+<div class="gallery" id="gallery"></div>
 
-  <div class="filters" id="filters"></div>
-  <div class="gallery" id="gallery"></div>
+<div class="lightbox" id="lightbox">
+  <button class="close-btn" onclick="closeLightbox()">✕</button>
+  <img id="lightbox-img" src="">
+</div>
 
-  <div class="lightbox" id="lightbox">
-    <button class="close-btn" onclick="closeLightbox()">✕</button>
-    <button class="arrow arrow-left" onclick="prevImage()">&#8592;</button>
-    <img id="lightbox-img" src="">
-    <button class="arrow arrow-right" onclick="nextImage()">&#8594;</button>
-  </div>
+<script>
+  const imageFiles = [
+    '2025-04-22_17-31-56_9364.png',
+  '2025-04-22_17-32-07_6965.png',
+  '2025-04-22_17-32-40_1568.png'
+  ];
 
-  <script>
-    const imageCount = 100; // Maksimum kaç resim var, uzatılabilir
-    const gallery = document.getElementById('gallery');
-    const filters = document.getElementById('filters');
-    const images = [];
-    const categories = new Set();
-    let currentIndex = 0;
+  const gallery = document.getElementById("gallery");
+  const lightbox = document.getElementById("lightbox");
+  const lightboxImg = document.getElementById("lightbox-img");
 
-    function extractCategory(filename) {
-      return filename.split(/[0-9]/)[0].replace(/[-_]/g, "").toLowerCase();
-    }
-
-    function createGallery() {
-      for (let i = 1; i <= imageCount; i++) {
-        const name = `fooocus${i}.jpg`;
-        const category = extractCategory(name);
-        const img = document.createElement('img');
-        img.src = `resimler/${name}`;
-        img.alt = category;
-        img.dataset.category = category;
-        img.onerror = () => img.remove();  // Görsel yoksa kaldır
-        img.addEventListener('click', () => {
-          currentIndex = images.indexOf(img);
-          showImage();
-        });
-        gallery.appendChild(img);
-        images.push(img);
-        categories.add(category);
-      }
-      createFilterButtons();
-    }
-
-    function createFilterButtons() {
-      filters.innerHTML = '<button onclick="filterCategory('all')">Tümü</button>';
-      categories.forEach(cat => {
-        const btn = document.createElement('button');
-        btn.textContent = cat.charAt(0).toUpperCase() + cat.slice(1);
-        btn.onclick = () => filterCategory(cat);
-        filters.appendChild(btn);
-      });
-    }
-
-    function filterCategory(category) {
-      images.forEach(img => {
-        if (category === 'all' || img.dataset.category === category) {
-          img.classList.remove('hidden');
-        } else {
-          img.classList.add('hidden');
-        }
-      });
-    }
-
-    function showImage() {
-      document.getElementById("lightbox-img").src = images[currentIndex].src;
-      document.getElementById("lightbox").classList.add("active");
-    }
-
-    function closeLightbox() {
-      document.getElementById("lightbox").classList.remove("active");
-    }
-
-    function nextImage() {
-      do {
-        currentIndex = (currentIndex + 1) % images.length;
-      } while (images[currentIndex].classList.contains("hidden"));
-      showImage();
-    }
-
-    function prevImage() {
-      do {
-        currentIndex = (currentIndex - 1 + images.length) % images.length;
-      } while (images[currentIndex].classList.contains("hidden"));
-      showImage();
-    }
-
-    document.addEventListener("keydown", function (e) {
-      if (e.key === "Escape") closeLightbox();
-      if (e.key === "ArrowRight") nextImage();
-      if (e.key === "ArrowLeft") prevImage();
+  imageFiles.forEach(file => {
+    const img = document.createElement("img");
+    img.src = "resimler/" + file;
+    img.alt = file;
+    img.addEventListener("click", () => {
+      lightboxImg.src = img.src;
+      lightbox.classList.add("active");
     });
+    gallery.appendChild(img);
+  });
 
-    document.getElementById("lightbox").addEventListener("click", (e) => {
-      if (e.target.id === "lightbox" || e.target.tagName === "IMG") {
-        closeLightbox();
-      }
-    });
-
-    createGallery();
-  </script>
+  function closeLightbox() {
+    lightbox.classList.remove("active");
+  }
+</script>
 
 </body>
 </html>
