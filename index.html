@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <title>nanoGallery2 Kategorili Galeri</title>
+  <title>nanoGallery2 JSON Galeri</title>
   <meta name="robots" content="noindex, nofollow">
   <link href="https://unpkg.com/nanogallery2/dist/css/nanogallery2.min.css" rel="stylesheet">
   <style>
@@ -20,7 +20,7 @@
 </head>
 <body>
 
-<h1>nanoGallery2 - Kategorili Galeri (Tag Filtering)</h1>
+<h1>nanoGallery2 - JSON Destekli Galeri</h1>
 
 <div id="my_nanogallery2"></div>
 
@@ -29,38 +29,8 @@
 
 <script>
   $('#my_nanogallery2').nanogallery2({
-    items: [
-      {
-        src: 'resimler/KayZen_01/fooocus4.png',
-        srct: 'resimler/KayZen_01/fooocus4.png',
-        title: 'Görsel 1',
-        tags: "KayZen_01"
-      },
-      {
-        src: 'resimler/KayZen_01/fooocus39.webp',
-        srct: 'resimler/KayZen_01/fooocus39.webp',
-        title: 'Görsel 2',
-        tags: "KayZen_02"
-      },
-      {
-        src: 'resimler/KayZen_02/fooocus41.webp',
-        srct: 'resimler/KayZen_02/fooocus41.webp',
-        title: 'Görsel 41',
-        tags: "KayZen_02"
-      },
-      {
-        src: 'resimler/KayZen_03/fooocus101.webp',
-        srct: 'resimler/KayZen_03/fooocus101.webp',
-        title: 'Görsel 101',
-        tags: "KayZen_03"
-      },
-      {
-        src: 'resimler/KayZen_04/fooocus201.webp',
-        srct: 'resimler/KayZen_04/fooocus201.webp',
-        title: 'Görsel 201',
-        tags: "KayZen_04"
-      }
-    ],
+    itemsBaseURL: 'resimler/',
+    jsonUrl: 'gallery.json',
     thumbnailHeight: 120,
     thumbnailWidth: 'auto',
     galleryDisplayMode: 'rows',
