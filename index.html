@@ -148,6 +148,23 @@
   </div>
 
   <script>
+    const imageCount = 100; // Kaç görsel varsa burada belirle
+    const gallery = document.getElementById('gallery');
+    const images = [];
+    let currentIndex = 0;
+
+    for (let i = 1; i <= imageCount; i++) {
+      const img = document.createElement('img');
+      img.src = `resimler/fooocus${i}.jpg`;
+      img.alt = `Görsel ${i}`;
+      img.addEventListener('click', () => {
+        currentIndex = i - 1;
+        showImage();
+      });
+      gallery.appendChild(img);
+      images.push(img);
+    }
+
     const imageList = [
       { file: 'fooocus1.jpg', category: 'manzara' },
       { file: 'fooocus2.jpg', category: 'portre' },
