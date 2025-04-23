@@ -148,14 +148,14 @@
     gallery.innerHTML = "";
     images = [];
 
-    for (let i = 1; i <= 200; i++) {
+    for (let i = 1; i <= 100; i++) {
       const base = `resimler/${folder}/fooocus${i}`;
       const img = document.createElement("img");
       img.src = base + ".webp";
       img.alt = folder + " - " + i;
       img.onerror = () => {
-      img.src = base + ".png";
-      img.onerror = () => img.remove(); // .png de yoksa kaldır
+        img.onerror = () => img.remove(); // .png de yoksa kaldır
+        img.src = base + ".png";
       };
       img.addEventListener("click", () => {
         currentIndex = images.indexOf(img);
