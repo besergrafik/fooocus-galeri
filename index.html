@@ -2,8 +2,8 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <meta name="robots" content="noindex, nofollow">
   <title>Fooocus Galeri</title>
+  <meta name="robots" content="noindex, nofollow">
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -89,20 +89,24 @@
   const gallery = document.getElementById("gallery");
   const lightbox = document.getElementById("lightbox");
   const lightboxImg = document.getElementById("lightbox-img");
+  let images = [];
+  let currentIndex = 0;
 
   function addImage(filename) {
     const img = document.createElement("img");
     img.src = "resimler/" + filename;
     img.alt = filename;
     img.addEventListener("click", () => {
+      currentIndex = images.indexOf(img);
       lightboxImg.src = img.src;
       lightbox.classList.add("active");
     });
-    img.onerror = () => img.remove(); // Görsel yoksa sil
+    img.onerror = () => img.remove();
     gallery.appendChild(img);
+    images.push(img);
   }
 
-  for (let i = 1; i <= 350; i++) {
+  for (let i = 1; i <= 150; i++) {
     const webp = "fooocus" + i + ".webp";
     const png = "fooocus" + i + ".png";
 
@@ -114,23 +118,38 @@
 
   function closeLightbox() {
     lightbox.classList.remove("active");
-    let startX = 0;
-
-  document.getElementById("lightbox").addEventListener("touchstart", function(e) {
-    startX = e.changedTouches[0].screenX;
-  });
-
-  document.getElementById("lightbox").addEventListener("touchend", function(e) {
-    const endX = e.changedTouches[0].screenX;
-    const deltaX = endX - startX;
-
-    if (deltaX < 0) {
-  prevImage();  // deneme için ters
-} else {
-  nextImage();
-}
-  });
   }
+
+  function nextImage() {
+    currentIndex = (currentIndex + 1) % images.length;
+    lightboxImg.src = images[currentIndex].src;
+  }
+
+  function prevImage() {
+    currentIndex = (currentIndex - 1 + images.length) % images.length;
+    lightboxImg.src = images[currentIndex].src;
+  }
+
+  // TOUCH SWIPE DESTEĞİ (mobil geçiş)
+  let touchStartX = 0;
+  let touchEndX = 0;
+
+  lightbox.addEventListener("touchstart", function(e) {
+    touchStartX = e.changedTouches[0].screenX;
+  });
+
+  lightbox.addEventListener("touchend", function(e) {
+    touchEndX = e.changedTouches[0].screenX;
+    const deltaX = touchEndX - touchStartX;
+
+    if (Math.abs(deltaX) > 50) {
+      if (deltaX < 0) {
+        nextImage();
+      } else {
+        prevImage();
+      }
+    }
+  });
 </script>
 
 </body>
