@@ -153,7 +153,10 @@
       const img = document.createElement("img");
       img.src = base + ".webp";
       img.alt = folder + " - " + i;
-      img.onerror = () => { img.src = base + ".png"; };
+      img.onerror = () => {
+      img.src = base + ".png";
+      img.onerror = () => img.remove(); // .png de yoksa kaldır
+      };
       img.addEventListener("click", () => {
         currentIndex = images.indexOf(img);
         lightboxImg.src = img.src;
