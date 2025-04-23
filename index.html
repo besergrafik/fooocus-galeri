@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <title>Galerim</title>
+  <title>Fooocus Galeri</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -73,7 +73,7 @@
 </head>
 <body>
 
-<h1>Galerim</h1>
+<h1>Fooocus Galerim</h1>
 <div class="gallery" id="gallery"></div>
 
 <div class="lightbox" id="lightbox">
@@ -82,26 +82,32 @@
 </div>
 
 <script>
-  const imageFiles = [
-    '2025-04-22_17-31-56_9364.png',
-  '2025-04-22_17-32-07_6965.png',
-  '2025-04-22_17-32-40_1568.png'
-  ];
-
+  const imagePrefix = "2025-04-22_";
+  const maxImages = 200;
   const gallery = document.getElementById("gallery");
   const lightbox = document.getElementById("lightbox");
   const lightboxImg = document.getElementById("lightbox-img");
 
-  imageFiles.forEach(file => {
+  function addImage(filename) {
     const img = document.createElement("img");
-    img.src = "resimler/" + file;
-    img.alt = file;
+    img.src = "resimler/" + filename;
+    img.alt = filename;
     img.addEventListener("click", () => {
       lightboxImg.src = img.src;
       lightbox.classList.add("active");
     });
+    img.onerror = () => img.remove(); // Görsel yoksa sil
     gallery.appendChild(img);
-  });
+  }
+
+  for (let i = 0; i < maxImages; i++) {
+    const timestamp = new Date(2025, 3, 22, 17, 31 + Math.floor(i / 10), (i % 10) * 6);
+    const filename = timestamp
+      .toISOString()
+      .slice(0, 19)
+      .replace(/[-:T]/g, "_") + "_" + (1000 + i) + ".png";
+    addImage(filename);
+  }
 
   function closeLightbox() {
     lightbox.classList.remove("active");
