@@ -149,22 +149,30 @@
     images = [];
 
     for (let i = 1; i <= 100; i++) {
-      const base = `resimler/${folder}/fooocus${i}`;
-      const img = document.createElement("img");
-      img.src = base + ".webp";
-      img.alt = folder + " - " + i;
-      img.onerror = () => {
-        img.onerror = () => img.remove(); // .png de yoksa kaldır
-        img.src = base + ".png";
+      const baseName = `fooocus${i}`;
+      const tryWebp = new Image();
+      tryWebp.onload = () => appendImage(folder, baseName + ".webp");
+      tryWebp.onerror = () => {
+        const tryPng = new Image();
+        tryPng.onload = () => appendImage(folder, baseName + ".png");
+        tryPng.onerror = () => {}; // png de yoksa boş geç
+        tryPng.src = `resimler/${folder}/${baseName}.png`;
       };
-      img.addEventListener("click", () => {
-        currentIndex = images.indexOf(img);
-        lightboxImg.src = img.src;
-        lightbox.classList.add("active");
-      });
-      gallery.appendChild(img);
-      images.push(img);
+      tryWebp.src = `resimler/${folder}/${baseName}.webp`;
     }
+  }
+
+  function appendImage(folder, filename) {
+    const img = document.createElement("img");
+    img.src = `resimler/${folder}/${filename}`;
+    img.alt = filename;
+    img.addEventListener("click", () => {
+      currentIndex = images.indexOf(img);
+      lightboxImg.src = img.src;
+      lightbox.classList.add("active");
+    });
+    gallery.appendChild(img);
+    images.push(img);
   }
 </script>
 
