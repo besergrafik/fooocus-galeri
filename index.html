@@ -131,13 +131,7 @@
 
   <h1>Fooocus Galerim</h1>
 
-  <div class="filters">
-    <button onclick="filterCategory('all')">Tümü</button>
-    <button onclick="filterCategory('manzara')">Manzara</button>
-    <button onclick="filterCategory('portre')">Portre</button>
-    <button onclick="filterCategory('fantezi')">Fantezi</button>
-  </div>
-
+  <div class="filters" id="filters"></div>
   <div class="gallery" id="gallery"></div>
 
   <div class="lightbox" id="lightbox">
@@ -148,54 +142,49 @@
   </div>
 
   <script>
-    const imageCount = 100; // Kaç görsel varsa burada belirle
+    const imageCount = 100; // Maksimum kaç resim var, uzatılabilir
     const gallery = document.getElementById('gallery');
+    const filters = document.getElementById('filters');
     const images = [];
+    const categories = new Set();
     let currentIndex = 0;
 
-    for (let i = 1; i <= imageCount; i++) {
-      const img = document.createElement('img');
-      img.src = `resimler/fooocus${i}.jpg`;
-      img.alt = `Görsel ${i}`;
-      img.addEventListener('click', () => {
-        currentIndex = i - 1;
-        showImage();
-      });
-      gallery.appendChild(img);
-      images.push(img);
+    function extractCategory(filename) {
+      return filename.split(/[0-9]/)[0].replace(/[-_]/g, "").toLowerCase();
     }
 
-    const imageList = [
-      { file: 'fooocus1.jpg', category: 'manzara' },
-      { file: 'fooocus2.jpg', category: 'portre' },
-      { file: 'fooocus3.jpg', category: 'fantezi' },
-      { file: 'fooocus4.jpg', category: 'manzara' },
-      { file: 'fooocus5.jpg', category: 'portre' },
-      { file: 'fooocus6.jpg', category: 'fantezi' }
-    ];
-
-    const gallery = document.getElementById('gallery');
-    const images = [];
-    let currentIndex = 0;
-
     function createGallery() {
-      gallery.innerHTML = "";
-      imageList.forEach((imgData, index) => {
+      for (let i = 1; i <= imageCount; i++) {
+        const name = `fooocus${i}.jpg`;
+        const category = extractCategory(name);
         const img = document.createElement('img');
-        img.src = `resimler/${imgData.file}`;
-        img.alt = imgData.category;
-        img.dataset.category = imgData.category;
+        img.src = `resimler/${name}`;
+        img.alt = category;
+        img.dataset.category = category;
+        img.onerror = () => img.remove();  // Görsel yoksa kaldır
         img.addEventListener('click', () => {
-          currentIndex = index;
+          currentIndex = images.indexOf(img);
           showImage();
         });
         gallery.appendChild(img);
         images.push(img);
+        categories.add(category);
+      }
+      createFilterButtons();
+    }
+
+    function createFilterButtons() {
+      filters.innerHTML = '<button onclick="filterCategory('all')">Tümü</button>';
+      categories.forEach(cat => {
+        const btn = document.createElement('button');
+        btn.textContent = cat.charAt(0).toUpperCase() + cat.slice(1);
+        btn.onclick = () => filterCategory(cat);
+        filters.appendChild(btn);
       });
     }
 
     function filterCategory(category) {
-      images.forEach((img, i) => {
+      images.forEach(img => {
         if (category === 'all' || img.dataset.category === category) {
           img.classList.remove('hidden');
         } else {
