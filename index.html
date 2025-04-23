@@ -179,7 +179,7 @@
   const categoryPattern = ['KayZen_01', 'KayZen_02', 'KayZen_03', 'KayZen_04'];
 
   for (let i = 1; i <= 350; i++) {
-    const cat = categoryPattern//[Math.floor((i - 1) / 40)] || 'KayZen_04';
+    const cat = categoryPattern[Math.floor((i - 1) / 100)] || 'KayZen_04';
     const webp = "fooocus" + i + ".webp";
     const png = "fooocus" + i + ".png";
 
