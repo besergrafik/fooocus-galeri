@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <title>Fooocus Galeri</title>
+  <title>Fooocus Kategori Galerisi</title>
   <meta name="robots" content="noindex, nofollow">
   <style>
     body {
@@ -97,10 +97,10 @@
 <h1>Fooocus Galerim</h1>
 
 <div class="filters">
-  <button onclick="filterImages('KayZen_01')">KayZen_01</button>
-  <button onclick="filterImages('KayZen_02')">KayZen_02</button>
-  <button onclick="filterImages('KayZen_03')">KayZen_03</button>
-  <button onclick="filterImages('KayZen_04')">KayZen_04</button>
+  <button onclick="loadCategory('KayZen_01')">KayZen_01</button>
+  <button onclick="loadCategory('KayZen_02')">KayZen_02</button>
+  <button onclick="loadCategory('KayZen_03')">KayZen_03</button>
+  <button onclick="loadCategory('KayZen_04')">KayZen_04</button>
 </div>
 
 <div class="gallery" id="gallery"></div>
@@ -116,45 +116,20 @@
   const lightboxImg = document.getElementById("lightbox-img");
   let images = [];
   let currentIndex = 0;
-  let categoryMap = {};
-
-  function addImage(filename, category) {
-    const img = document.createElement("img");
-    img.src = "resimler/" + filename;
-    img.alt = filename;
-    img.dataset.category = category;
-    img.style.display = "none";
-    img.addEventListener("click", () => {
-      currentIndex = images.indexOf(img);
-      lightboxImg.src = img.src;
-      lightbox.classList.add("active");
-    });
-    img.onerror = () => img.remove();
-    gallery.appendChild(img);
-    images.push(img);
-  }
 
   function closeLightbox() {
     lightbox.classList.remove("active");
   }
 
   function nextImage() {
-    do {
-      currentIndex = (currentIndex + 1) % images.length;
-    } while (images[currentIndex].style.display === "none");
+    currentIndex = (currentIndex + 1) % images.length;
     lightboxImg.src = images[currentIndex].src;
   }
 
   function prevImage() {
-    do {
-      currentIndex = (currentIndex - 1 + images.length) % images.length;
-    } while (images[currentIndex].style.display === "none");
+    currentIndex = (currentIndex - 1 + images.length) % images.length;
     lightboxImg.src = images[currentIndex].src;
   }
-
-  // TOUCH SWIPE DESTEĞİ
-  let touchStartX = 0;
-  let touchEndX = 0;
 
   lightbox.addEventListener("touchstart", function(e) {
     touchStartX = e.changedTouches[0].screenX;
@@ -169,24 +144,24 @@
     }
   });
 
-  function filterImages(category) {
-    images.forEach(img => {
-      img.style.display = img.dataset.category === category ? "block" : "none";
-    });
-  }
+  function loadCategory(folder) {
+    gallery.innerHTML = "";
+    images = [];
 
-  // Otomatik olarak 150 görseli yükle (kategori eşlemesi yapılmış varsayılan örnekleme ile)
-  const categoryPattern = ['KayZen_01', 'KayZen_02', 'KayZen_03', 'KayZen_04'];
-
-  for (let i = 1; i <= 350; i++) {
-    const cat = categoryPattern[Math.floor((i - 1) / 100)] || 'KayZen_04';
-    const webp = "fooocus" + i + ".webp";
-    const png = "fooocus" + i + ".png";
-
-    const testImg = new Image();
-    testImg.onload = () => addImage(webp, cat);
-    testImg.onerror = () => addImage(png, cat);
-    testImg.src = "resimler/" + webp;
+    for (let i = 1; i <= 100; i++) {
+      const base = `resimler/${folder}/fooocus${i}`;
+      const img = document.createElement("img");
+      img.src = base + ".webp";
+      img.alt = folder + " - " + i;
+      img.onerror = () => { img.src = base + ".png"; };
+      img.addEventListener("click", () => {
+        currentIndex = images.indexOf(img);
+        lightboxImg.src = img.src;
+        lightbox.classList.add("active");
+      });
+      gallery.appendChild(img);
+      images.push(img);
+    }
   }
 </script>
 
