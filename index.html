@@ -2,76 +2,186 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <title>nanoGallery2 Kategorili Galeri</title>
+  <title>Fooocus Kategori Galerisi</title>
   <meta name="robots" content="noindex, nofollow">
-  <link href="https://unpkg.com/nanogallery2/dist/css/nanogallery2.min.css" rel="stylesheet">
   <style>
     body {
       font-family: Arial, sans-serif;
       margin: 0;
-      padding: 30px;
-      background: linear-gradient(to right, #fbe8eb, #e6f7fb);
+      padding: 20px;
+      background: linear-gradient(135deg, #fbe8eb, #e6f7fb, #f3f5e6);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+    }
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
     h1 {
       text-align: center;
-      margin-bottom: 40px;
+    }
+    .filters {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .filters button {
+      background-color: #ffffffcc;
+      border: none;
+      padding: 10px 15px;
+      margin: 5px;
+      border-radius: 20px;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      transition: background-color 0.3s;
+    }
+    .filters button:hover {
+      background-color: #ffd2dc;
+    }
+    .gallery {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 15px;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .gallery img {
+      width: 100px;
+      cursor: pointer;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      transition: transform 0.2s ease;
+    }
+    .gallery img:hover {
+      transform: scale(1.05);
+    }
+    .lightbox {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      visibility: hidden;
+      opacity: 0;
+      transition: 0.3s;
+    }
+    .lightbox.active {
+      visibility: visible;
+      opacity: 1;
+    }
+    .lightbox img {
+      max-width: 90%;
+      max-height: 85%;
+      border-radius: 10px;
+    }
+    .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      font-size: 28px;
+      color: white;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      z-index: 10001;
     }
   </style>
 </head>
 <body>
 
-<h1>nanoGallery2 - Kategorili Galeri (Tag Filtering)</h1>
+<h1>Fooocus Galerim</h1>
 
-<div id="my_nanogallery2"></div>
+<div class="filters">
+  <button onclick="loadCategory('KayZen_01')">KayZen_01</button>
+  <button onclick="loadCategory('KayZen_02')">KayZen_02</button>
+  <button onclick="loadCategory('KayZen_03')">KayZen_03</button>
+  <button onclick="loadCategory('KayZen_04')">KayZen_04</button>
+</div>
 
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="https://unpkg.com/nanogallery2/dist/jquery.nanogallery2.min.js"></script>
+<div class="gallery" id="gallery"></div>
+
+<div class="lightbox" id="lightbox">
+  <button class="close-btn" onclick="closeLightbox()">✕</button>
+  <img id="lightbox-img" src="">
+</div>
 
 <script>
-  $('#my_nanogallery2').nanogallery2({
-    items: [
-      {
-        src: 'resimler/KayZen_01/fooocus1.webp',
-        srct: 'resimler/KayZen_01/fooocus1.webp',
-        title: 'Görsel 1',
-        tags: ['KayZen_01']
-      },
-      {
-        src: 'resimler/KayZen_01/fooocus2.webp',
-        srct: 'resimler/KayZen_01/fooocus2.webp',
-        title: 'Görsel 2',
-        tags: ['KayZen_01']
-      },
-      {
-        src: 'resimler/KayZen_02/fooocus41.webp',
-        srct: 'resimler/KayZen_02/fooocus41.webp',
-        title: 'Görsel 41',
-        tags: ['KayZen_02']
-      },
-      {
-        src: 'resimler/KayZen_03/fooocus101.webp',
-        srct: 'resimler/KayZen_03/fooocus101.webp',
-        title: 'Görsel 101',
-        tags: ['KayZen_03']
-      },
-      {
-        src: 'resimler/KayZen_04/fooocus201.webp',
-        srct: 'resimler/KayZen_04/fooocus201.webp',
-        title: 'Görsel 201',
-        tags: ['KayZen_04']
-      }
-    ],
-    thumbnailHeight: 120,
-    thumbnailWidth: 'auto',
-    galleryDisplayMode: 'rows',
-    thumbnailLabel: { display: false },
-    viewerToolbar: { display: true, autoMinimize: true },
-    gallerySorting: 'titleAsc',
-    galleryTheme: {
-      navigationbarBackground: '#fff',
-      thumbnailDisplayTransition: 'fadeIn'
+  const gallery = document.getElementById("gallery");
+  const lightbox = document.getElementById("lightbox");
+  const lightboxImg = document.getElementById("lightbox-img");
+  let images = [];
+  let currentIndex = 0;
+
+  const categoryRanges = {
+    KayZen_01: [1, 40],
+    KayZen_02: [26, 100],
+    KayZen_03: [101, 201],
+    KayZen_04: [202, 325]
+  };
+
+  function closeLightbox() {
+    lightbox.classList.remove("active");
+  }
+
+  function nextImage() {
+    currentIndex = (currentIndex + 1) % images.length;
+    lightboxImg.src = images[currentIndex].src;
+  }
+
+  function prevImage() {
+    currentIndex = (currentIndex - 1 + images.length) % images.length;
+    lightboxImg.src = images[currentIndex].src;
+  }
+
+  lightbox.addEventListener("touchstart", function(e) {
+    touchStartX = e.changedTouches[0].screenX;
+  });
+
+  lightbox.addEventListener("touchend", function(e) {
+    touchEndX = e.changedTouches[0].screenX;
+    const deltaX = touchEndX - touchStartX;
+    if (Math.abs(deltaX) > 50) {
+      if (deltaX < 0) nextImage();
+      else prevImage();
     }
   });
+
+  function loadCategory(folder) {
+    gallery.innerHTML = "";
+    images = [];
+    const [start, end] = categoryRanges[folder];
+
+    for (let i = start; i <= end; i++) {
+      const baseName = `fooocus${i}`;
+      const tryWebp = new Image();
+      tryWebp.onload = () => appendImage(folder, baseName + ".webp");
+      tryWebp.onerror = () => {
+        const tryPng = new Image();
+        tryPng.onload = () => appendImage(folder, baseName + ".png");
+        tryPng.onerror = () => {};
+        tryPng.src = `resimler/${folder}/${baseName}.png`;
+      };
+      tryWebp.src = `resimler/${folder}/${baseName}.webp`;
+    }
+  }
+
+  function appendImage(folder, filename) {
+    const img = document.createElement("img");
+    img.src = `resimler/${folder}/${filename}`;
+    img.alt = filename;
+    img.addEventListener("click", () => {
+      currentIndex = images.indexOf(img);
+      lightboxImg.src = img.src;
+      lightbox.classList.add("active");
+    });
+    gallery.appendChild(img);
+    images.push(img);
+  }
 </script>
 
 </body>
