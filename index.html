@@ -124,13 +124,11 @@
     const endX = e.changedTouches[0].screenX;
     const deltaX = endX - startX;
 
-    if (Math.abs(deltaX) > 50) { // minimum hareket mesafesi
-      if (deltaX < 0) {
-        nextImage();  // sola kaydır → ileri
-      } else {
-        prevImage();  // sağa kaydır → geri
-      }
-    }
+    if (deltaX < 0) {
+  prevImage();  // deneme için ters
+} else {
+  nextImage();
+}
   });
   }
 </script>
