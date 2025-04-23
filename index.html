@@ -117,6 +117,13 @@
   let images = [];
   let currentIndex = 0;
 
+  const categoryRanges = {
+    KayZen_01: [1, 40],
+    KayZen_02: [41, 80],
+    KayZen_03: [101, 122],
+    KayZen_04: [201, 220]
+  };
+
   function closeLightbox() {
     lightbox.classList.remove("active");
   }
@@ -147,15 +154,16 @@
   function loadCategory(folder) {
     gallery.innerHTML = "";
     images = [];
+    const [start, end] = categoryRanges[folder];
 
-    for (let i = 1; i <= 100; i++) {
+    for (let i = start; i <= end; i++) {
       const baseName = `fooocus${i}`;
       const tryWebp = new Image();
       tryWebp.onload = () => appendImage(folder, baseName + ".webp");
       tryWebp.onerror = () => {
         const tryPng = new Image();
         tryPng.onload = () => appendImage(folder, baseName + ".png");
-        tryPng.onerror = () => {}; // png de yoksa boş geç
+        tryPng.onerror = () => {};
         tryPng.src = `resimler/${folder}/${baseName}.png`;
       };
       tryWebp.src = `resimler/${folder}/${baseName}.webp`;
