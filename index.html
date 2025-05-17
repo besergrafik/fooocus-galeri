@@ -90,48 +90,97 @@
       cursor: pointer;
       z-index: 10001;
     }
+    .loading {
+      text-align: center;
+      padding: 20px;
+      font-size: 18px;
+      color: #666;
+    }
+    .nav-buttons {
+      position: absolute;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      top: 50%;
+      transform: translateY(-50%);
+      padding: 0 20px;
+      box-sizing: border-box;
+    }
+    .nav-button {
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .nav-button:hover {
+      background: rgba(255,255,255,0.4);
+    }
   </style>
 </head>
 <body>
 
 <h1>Fooocus Galerim</h1>
 
-<div class="filters">
-  <button onclick="loadCategory('KayZen_01')">KayZen_01</button>
-  <button onclick="loadCategory('KayZen_02')">KayZen_02</button>
-  <button onclick="loadCategory('KayZen_03')">KayZen_03</button>
-  <button onclick="loadCategory('KayZen_04')">KayZen_04</button>
-  <button onclick="loadCategory('KayZen_05')">KayZen_05</button>
-  <button onclick="loadCategory('KayZen_06')">KayZen_06</button>
-  <button onclick="loadCategory('KayZen_07')">KayZen_07</button>
-  <button onclick="loadCategory('KayZen_08')">KayZen_08</button>
-  
+<div class="filters" id="category-buttons">
+  <div class="loading">Kategoriler yükleniyor...</div>
 </div>
 
 <div class="gallery" id="gallery"></div>
 
 <div class="lightbox" id="lightbox">
-  <button class="close-btn" onclick="closeLightbox()">?</button>
+  <button class="close-btn" onclick="closeLightbox()">×</button>
+  <div class="nav-buttons">
+    <button class="nav-button" onclick="prevImage()">◀</button>
+    <button class="nav-button" onclick="nextImage()">▶</button>
+  </div>
   <img id="lightbox-img" src="">
 </div>
 
 <script>
   const gallery = document.getElementById("gallery");
+  const categoryButtons = document.getElementById("category-buttons");
   const lightbox = document.getElementById("lightbox");
   const lightboxImg = document.getElementById("lightbox-img");
   let images = [];
   let currentIndex = 0;
+  let galleryData = null;
+  let touchStartX = 0;
+  let touchEndX = 0;
 
-  const categoryRanges = {
-    KayZen_01: [1, 40],
-    KayZen_02: [26, 100],
-    KayZen_03: [101, 201],
-    KayZen_04: [202, 325],
-    KayZen_05: [326, 425],
-    KayZen_06: [425, 524],
-    KayZen_07: [525, 612],
-    KayZen_08: [613, 692],
-  };
+  // JSON dosyasını yükle
+  async function loadGalleryData() {
+    try {
+      const response = await fetch('gallery-data.json');
+      if (!response.ok) {
+        throw new Error('JSON yüklenemedi');
+      }
+      galleryData = await response.json();
+      
+      // Kategori butonlarını oluştur
+      categoryButtons.innerHTML = '';
+      Object.keys(galleryData.categories).forEach(category => {
+        const button = document.createElement('button');
+        button.textContent = category;
+        button.onclick = () => loadCategory(category);
+        categoryButtons.appendChild(button);
+      });
+      
+      // İlk kategoriyi varsayılan olarak yükle
+      if (Object.keys(galleryData.categories).length > 0) {
+        loadCategory(Object.keys(galleryData.categories)[0]);
+      }
+    } catch (error) {
+      console.error('Galeri verisi yüklenemedi:', error);
+      categoryButtons.innerHTML = '<div class="loading">JSON dosyası yüklenemedi. Lütfen gallery-data.json dosyasının mevcut olduğundan emin olun.</div>';
+    }
+  }
 
   function closeLightbox() {
     lightbox.classList.remove("active");
@@ -147,6 +196,16 @@
     lightboxImg.src = images[currentIndex].src;
   }
 
+  // Klavye ile navigasyon
+  document.addEventListener('keydown', function(e) {
+    if (lightbox.classList.contains('active')) {
+      if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'ArrowRight') nextImage();
+      if (e.key === 'ArrowLeft') prevImage();
+    }
+  });
+
+  // Dokunmatik yüzey için kaydırma işlemleri
   lightbox.addEventListener("touchstart", function(e) {
     touchStartX = e.changedTouches[0].screenX;
   });
@@ -160,37 +219,69 @@
     }
   });
 
-  function loadCategory(folder) {
-    gallery.innerHTML = "";
+  function loadCategory(category) {
+    gallery.innerHTML = '<div class="loading">Resimler yükleniyor...</div>';
     images = [];
-    const [start, end] = categoryRanges[folder];
-
+    
+    if (!galleryData || !galleryData.categories[category]) {
+      gallery.innerHTML = '<div class="loading">Kategori bulunamadı</div>';
+      return;
+    }
+    
+    const categoryConfig = galleryData.categories[category];
+    const [start, end] = categoryConfig.range;
+    const basePath = galleryData.basePaths[categoryConfig.basePath] || '';
+    
+    gallery.innerHTML = '';
+    
+    // Her resmi yükle
     for (let i = start; i <= end; i++) {
       const baseName = `fooocus${i}`;
-      const tryWebp = new Image();
-      tryWebp.onload = () => appendImage(folder, baseName + ".webp");
-      tryWebp.onerror = () => {
-        const tryPng = new Image();
-        tryPng.onload = () => appendImage(folder, baseName + ".png");
-        tryPng.onerror = () => {};
-        tryPng.src = `resimler/${folder}/${baseName}.png`;
-      };
-      tryWebp.src = `resimler/${folder}/${baseName}.webp`;
+      loadImageWithFallback(basePath, category, baseName);
     }
   }
 
-  function appendImage(folder, filename) {
+  function loadImageWithFallback(basePath, folder, baseName) {
+    // Önce webp formatını dene
+    const tryWebp = new Image();
+    tryWebp.onload = () => appendImage(`${basePath}${folder}/${baseName}.webp`);
+    tryWebp.onerror = () => {
+      // Webp yoksa png dene
+      const tryPng = new Image();
+      tryPng.onload = () => appendImage(`${basePath}${folder}/${baseName}.png`);
+      tryPng.onerror = () => {
+        // jpg dene
+        const tryJpg = new Image();
+        tryJpg.onload = () => appendImage(`${basePath}${folder}/${baseName}.jpg`);
+        tryJpg.onerror = () => {
+          // Hiçbir format bulunamadı
+          console.log(`Resim bulunamadı: ${baseName}`);
+        };
+        tryJpg.src = `${basePath}${folder}/${baseName}.jpg`;
+      };
+      tryPng.src = `${basePath}${folder}/${baseName}.png`;
+    };
+    tryWebp.src = `${basePath}${folder}/${baseName}.webp`;
+  }
+
+  function appendImage(src) {
     const img = document.createElement("img");
-    img.src = `resimler/${folder}/${filename}`;
-    img.alt = filename;
+    img.src = src;
+    img.alt = src.split('/').pop();
+    img.loading = "lazy"; // Lazy loading ile performans iyileştirmesi
+    
     img.addEventListener("click", () => {
       currentIndex = images.indexOf(img);
       lightboxImg.src = img.src;
       lightbox.classList.add("active");
     });
+    
     gallery.appendChild(img);
     images.push(img);
   }
+
+  // Sayfayı açtığımızda galeri verilerini yükle
+  window.addEventListener('load', loadGalleryData);
 </script>
 
 </body>
