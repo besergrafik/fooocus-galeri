@@ -206,10 +206,8 @@
       categoryButtons.appendChild(button);
     });
     
-    // İlk kategoriyi varsayılan olarak yükle
-    if (Object.keys(galleryData.categories).length > 0) {
-      loadCategory(Object.keys(galleryData.categories)[0]);
-    }
+    // Ana sayfada galeri boş olsun, sadece butonları gösterelim
+    gallery.innerHTML = '<div class="loading">Lütfen yukarıdan bir kategori seçin</div>';
   }
 
   function closeLightbox() {
