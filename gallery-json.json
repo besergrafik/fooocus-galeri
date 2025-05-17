@@ -1,0 +1,39 @@
+{
+  "basePaths": {
+    "main": "resimler/"
+  },
+  "categories": {
+    "KayZen_01": {
+      "basePath": "main",
+      "range": [1, 40]
+    },
+    "KayZen_02": {
+      "basePath": "main",
+      "range": [26, 100]
+    },
+    "KayZen_03": {
+      "basePath": "main",
+      "range": [101, 201]
+    },
+    "KayZen_04": {
+      "basePath": "main",
+      "range": [202, 325]
+    },
+    "KayZen_05": {
+      "basePath": "main",
+      "range": [326, 425] 
+    },
+    "KayZen_06": {
+      "basePath": "main",
+      "range": [425, 524]
+    },
+    "KayZen_07": {
+      "basePath": "main",
+      "range": [525, 612]
+    },
+    "KayZen_08": {
+      "basePath": "main",
+      "range": [613, 692]
+    }
+  }
+}
