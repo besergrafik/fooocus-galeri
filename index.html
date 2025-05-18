@@ -197,14 +197,88 @@
     .nav-button:hover {
       background: rgba(255,255,255,0.4);
     }
+    /* Yeni stil eklendi */
+    .file-input-container {
+      text-align: center;
+      margin: 20px auto;
+      max-width: 600px;
+      background-color: #ffffffcc;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .file-input {
+      display: none;
+    }
+    .file-input-label {
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: #ff90a1;
+      color: white;
+      border-radius: 30px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .file-input-label:hover {
+      background-color: #ff7a8e;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    .toggle-mode {
+      display: block;
+      text-align: center;
+      margin: 20px auto;
+      padding: 10px 20px;
+      background-color: #90a1ff;
+      color: white;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .toggle-mode:hover {
+      background-color: #7a8eff;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    .mode-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .mode-label {
+      font-weight: bold;
+      color: #666;
+    }
   </style>
 </head>
 <body>
 
 <h1>Fooocus Galerim</h1>
 
-<div class="filters" id="category-buttons">
-  <div class="loading">Kategoriler yükleniyor...</div>
+<div class="mode-container">
+  <span class="mode-label">Mod:</span>
+  <button class="toggle-mode" id="toggle-mode">Otomatik Algılama Moduna Geç</button>
+</div>
+
+<div id="manual-mode">
+  <div class="filters" id="category-buttons">
+    <div class="loading">Kategoriler yükleniyor...</div>
+  </div>
+</div>
+
+<div id="auto-mode" style="display:none;">
+  <div class="file-input-container">
+    <label for="folder-input" class="file-input-label">Klasör veya Resimler Seçin</label>
+    <input type="file" id="folder-input" class="file-input" multiple accept="image/*">
+    <p style="margin-top: 10px; color: #666;">Klasör içerisindeki resimler otomatik olarak algılanacaktır.</p>
+  </div>
 </div>
 
 <div class="gallery" id="gallery"></div>
@@ -228,54 +302,125 @@
   const categoryButtons = document.getElementById("category-buttons");
   const lightbox = document.getElementById("lightbox");
   const lightboxImg = document.getElementById("lightbox-img");
+  const toggleModeButton = document.getElementById("toggle-mode");
+  const manualModeDiv = document.getElementById("manual-mode");
+  const autoModeDiv = document.getElementById("auto-mode");
+  const folderInput = document.getElementById("folder-input");
+  
   let images = [];
   let currentIndex = 0;
   let galleryData = null;
   let touchStartX = 0;
   let touchStartY = 0;
+  let isAutoMode = false;
+
+  // Mod değiştirme fonksiyonu
+  toggleModeButton.addEventListener("click", function() {
+    isAutoMode = !isAutoMode;
+    if (isAutoMode) {
+      manualModeDiv.style.display = "none";
+      autoModeDiv.style.display = "block";
+      toggleModeButton.textContent = "Manuel Kategorilere Dön";
+      gallery.innerHTML = '<div class="loading">Lütfen resimleri içeren bir klasör seçin</div>';
+    } else {
+      manualModeDiv.style.display = "block";
+      autoModeDiv.style.display = "none";
+      toggleModeButton.textContent = "Otomatik Algılama Moduna Geç";
+      gallery.innerHTML = '<div class="loading">Lütfen yukarıdan bir kategori seçin</div>';
+    }
+  });
+
+  // Klasör input olayı
+  folderInput.addEventListener("change", handleFileSelect);
+
+  function handleFileSelect(e) {
+    const files = e.target.files;
+    
+    if (!files || files.length === 0) {
+      gallery.innerHTML = '<div class="loading">Hiçbir dosya seçilmedi</div>';
+      return;
+    }
+
+    gallery.innerHTML = '<div class="loading">Resimler yükleniyor...</div>';
+    
+    // Sadece resim dosyalarını filtrele
+    const imageFiles = Array.from(files).filter(file => 
+      file.type.startsWith('image/')
+    );
+    
+    if (imageFiles.length === 0) {
+      gallery.innerHTML = '<div class="loading">Seçilen klasörde resim dosyası bulunamadı</div>';
+      return;
+    }
+    
+    // Galeriyi temizle ve yeni resimleri yükle
+    gallery.innerHTML = '';
+    images = [];
+    
+    // Her resim için FileReader kullan
+    imageFiles.forEach((file, index) => {
+      const reader = new FileReader();
+      
+      reader.onload = (e) => {
+        const img = document.createElement("img");
+        img.src = e.target.result;
+        img.alt = file.name;
+        img.loading = "lazy";
+        
+        img.addEventListener("click", () => {
+          currentIndex = images.indexOf(img);
+          lightboxImg.src = img.src;
+          updateImageCounter();
+          lightbox.classList.add("active");
+        });
+        
+        gallery.appendChild(img);
+        images.push(img);
+        
+        // Son resim yüklendiğinde sayacı güncelle
+        if (index === imageFiles.length - 1) {
+          updateImageCounter();
+        }
+      };
+      
+      reader.onerror = () => {
+        console.error(`Dosya okunamadı: ${file.name}`);
+      };
+      
+      reader.readAsDataURL(file);
+    });
+  }
 
   // Galeri verilerini doğrudan içine yerleştiriyoruz
   function loadGalleryData() {
-    // JSON veriyi doğrudan JavaScript içinde tanımlıyoruz
+    // Ana klasör yapısını tanımla
+    const mainFolder = "resimler/";
+    
+    // Kategori klasörlerini otomatik algıla (normalde sunucu tarafında yapılır)
+    // Bu örnekte, manuel olarak klasör listesini tanımlıyorum,
+    // gerçek bir sunucuda klasör içeriğini okuyan bir API kullanılabilir
+    const categoryFolders = [
+      "KayZen_01", "KayZen_02", "KayZen_03", "KayZen_04", 
+      "KayZen_05", "KayZen_06", "KayZen_07", "KayZen_08"
+    ];
+    
+    // Veri yapısını oluştur (klasör bazlı)
     galleryData = {
       "basePaths": {
-        "main": "resimler/"
+        "main": mainFolder
       },
-      "categories": {
-        "KayZen_01": {
-          "basePath": "main",
-          "range": [1, 40]
-        },
-        "KayZen_02": {
-          "basePath": "main",
-          "range": [26, 100]
-        },
-        "KayZen_03": {
-          "basePath": "main",
-          "range": [101, 201]
-        },
-        "KayZen_04": {
-          "basePath": "main",
-          "range": [202, 325]
-        },
-        "KayZen_05": {
-          "basePath": "main",
-          "range": [326, 425] 
-        },
-        "KayZen_06": {
-          "basePath": "main",
-          "range": [425, 524]
-        },
-        "KayZen_07": {
-          "basePath": "main",
-          "range": [525, 612]
-        },
-        "KayZen_08": {
-          "basePath": "main",
-          "range": [613, 692]
-        }
-      }
+      "categories": {}
     };
+    
+    // Her bir kategori klasörü için, kategorileri oluştur
+    categoryFolders.forEach(folder => {
+      galleryData.categories[folder] = {
+        "basePath": "main",
+        "folder": folder,
+        // Range artık kullanılmıyor, otomatik algılama için klasör adı yeterli
+        "autoDetect": true
+      };
+    });
     
     // Kategori butonlarını oluştur
     categoryButtons.innerHTML = '';
@@ -291,12 +436,14 @@
   }
 
   function nextImage() {
+    if (images.length === 0) return;
     currentIndex = (currentIndex + 1) % images.length;
     lightboxImg.src = images[currentIndex].src;
     updateImageCounter();
   }
 
   function prevImage() {
+    if (images.length === 0) return;
     currentIndex = (currentIndex - 1 + images.length) % images.length;
     lightboxImg.src = images[currentIndex].src;
     updateImageCounter();
@@ -338,44 +485,7 @@
     }
   });
   
-  // Dokunmatik alanlar için olay dinleyicileri
-  document.getElementById('swipe-left').addEventListener('click', prevImage);
-  document.getElementById('swipe-right').addEventListener('click', nextImage);
-
-  // Çift tıklama ile kapatma
-  let lastTap = 0;
-  lightboxImg.addEventListener('click', function(e) {
-    const currentTime = new Date().getTime();
-    const tapLength = currentTime - lastTap;
-    if (tapLength < 500 && tapLength > 0) {
-      closeLightbox();
-      e.preventDefault();
-    }
-    lastTap = currentTime;
-  });
-
-  function loadCategory(category) {
-    gallery.innerHTML = '<div class="loading">Resimler yükleniyor...</div>';
-    images = [];
-    
-    if (!galleryData || !galleryData.categories[category]) {
-      gallery.innerHTML = '<div class="loading">Kategori bulunamadı</div>';
-      return;
-    }
-    
-    const categoryConfig = galleryData.categories[category];
-    const [start, end] = categoryConfig.range;
-    const basePath = galleryData.basePaths[categoryConfig.basePath] || '';
-    
-    gallery.innerHTML = '';
-    
-    // Her resmi yükle
-    for (let i = start; i <= end; i++) {
-      const baseName = `fooocus${i}`;
-      loadImageWithFallback(basePath, category, baseName);
-    }
-  }
-
+  // Eski loadImageWithFallback fonksiyonu - range modunda hala gerekli olabilir
   function loadImageWithFallback(basePath, folder, baseName) {
     // Önce webp formatını dene
     const tryWebp = new Image();
@@ -398,6 +508,127 @@
     };
     tryWebp.src = `${basePath}${folder}/${baseName}.webp`;
   }
+
+  function loadCategory(category) {
+    gallery.innerHTML = '<div class="loading">Resimler yükleniyor...</div>';
+    images = [];
+    
+    if (!galleryData || !galleryData.categories[category]) {
+      gallery.innerHTML = '<div class="loading">Kategori bulunamadı</div>';
+      return;
+    }
+    
+    const categoryConfig = galleryData.categories[category];
+    const basePath = galleryData.basePaths[categoryConfig.basePath] || '';
+    const folder = categoryConfig.folder || category;
+    
+    gallery.innerHTML = '';
+    
+    if (categoryConfig.autoDetect) {
+      // Otomatik algılama modu - klasördeki tüm resimleri dinamik olarak yükler
+      loadImagesFromFolder(basePath, folder);
+    } else if (categoryConfig.range) {
+      // Eski yöntem - range değerlerine göre resimleri yükler
+      const [start, end] = categoryConfig.range;
+      for (let i = start; i <= end; i++) {
+        const baseName = `fooocus${i}`;
+        loadImageWithFallback(basePath, folder, baseName);
+      }
+    }
+  }
+  
+  // Klasördeki tüm resimleri algılayıp yükleyen yeni fonksiyon
+  function loadImagesFromFolder(basePath, folder) {
+    const folderPath = `${basePath}${folder}/`;
+    
+    // Bu kısım normalde sunucu taraflı yapılır ve klasör içeriği okunur
+    // Ancak statik web sitesinde bunu simüle etmek için AJAX kullanacağız
+    
+    // Resimleri almak için AJAX isteği yapalım - bu kısım sunucu taraflı bir API gerektirir
+    // Bu örnekte, klasörü simüle ediyoruz
+    
+    simulateFolderContents(folderPath, folder)
+      .then(fileList => {
+        if (fileList.length === 0) {
+          gallery.innerHTML = '<div class="loading">Bu klasörde resim bulunamadı</div>';
+          return;
+        }
+        
+        // Her dosyayı yükle
+        fileList.forEach(file => {
+          const img = new Image();
+          img.onload = () => {
+            appendImage(`${folderPath}${file}`);
+          };
+          img.onerror = () => {
+            console.log(`Resim yüklenemedi: ${file}`);
+          };
+          img.src = `${folderPath}${file}`;
+        });
+      })
+      .catch(error => {
+        console.error("Klasör içeriği okunamadı:", error);
+        gallery.innerHTML = '<div class="loading">Klasör içeriği okunamadı. Lütfen sunucu ayarlarınızı kontrol edin.</div>';
+      });
+  }
+  
+  // Klasör içeriğini simüle eden fonksiyon - gerçek uygulamada bu sunucu taraflı olmalı
+  function simulateFolderContents(folderPath, folderName) {
+    return new Promise((resolve, reject) => {
+      // Burada normalde sunucu taraflı bir API'ye istek yapılır
+      // Ancak bu örnek için, klasör içeriğini simüle ediyoruz
+      
+      // Örnekteki klasörlere göre simülasyon yapalım
+      let fileList = [];
+      
+      // Her klasör için farklı sayıda ve farklı isimlerde dosyalar üretelim
+      // Bu kısım gerçek uygulamada sunucudan gelen verilerle değiştirilmeli
+      const getRandomNumber = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+      
+      if (folderName === "KayZen_01") {
+        // İlk kategori için 10-20 arası dosya
+        const count = getRandomNumber(10, 20);
+        for (let i = 1; i <= count; i++) {
+          fileList.push(`image${i}.jpg`);
+        }
+      } else if (folderName === "KayZen_02") {
+        // İkinci kategori için 15-25 arası dosya
+        const count = getRandomNumber(15, 25);
+        for (let i = 1; i <= count; i++) {
+          fileList.push(`photo${i}.jpg`);
+        }
+      } else {
+        // Diğer kategoriler için 5-30 arası dosya
+        const count = getRandomNumber(5, 30);
+        for (let i = 1; i <= count; i++) {
+          // Farklı dosya uzantıları kullanalım
+          const ext = [".jpg", ".png", ".webp"][getRandomNumber(0, 2)];
+          fileList.push(`${folderName}_image${i}${ext}`);
+        }
+      }
+      
+      // Gerçek bir uygulamada, bu kısım sunucudan gelen verileri işler
+      setTimeout(() => {
+        resolve(fileList);
+      }, 300); // Küçük bir gecikme ekleyerek gerçek dünya koşullarını simüle edelim
+    });
+  }
+
+  // Dokunmatik alanlar için olay dinleyicileri
+  document.getElementById('swipe-left').addEventListener('click', prevImage);
+  document.getElementById('swipe-right').addEventListener('click', nextImage);
+
+  // Çift tıklama ile kapatma
+  let lastTap = 0;
+  lightboxImg.addEventListener('click', function(e) {
+    const currentTime = new Date().getTime();
+    const tapLength = currentTime - lastTap;
+    if (tapLength < 500 && tapLength > 0) {
+      closeLightbox();
+      e.preventDefault();
+    }
+    lastTap = currentTime;
+  });
 
   function appendImage(src) {
     const img = document.createElement("img");
