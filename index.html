@@ -256,6 +256,23 @@
       font-weight: bold;
       color: #666;
     }
+    /* Hata mesajları için stil */
+    .error-message {
+      text-align: center;
+      color: #ff4757;
+      background-color: #ffe6e6;
+      padding: 10px;
+      border-radius: 5px;
+      margin: 10px auto;
+      max-width: 80%;
+    }
+    /* Kategori durum mesajları */
+    .category-info {
+      text-align: center;
+      font-style: italic;
+      color: #666;
+      margin: 10px 0;
+    }
   </style>
 </head>
 <body>
@@ -271,6 +288,7 @@
   <div class="filters" id="category-buttons">
     <div class="loading">Kategoriler yükleniyor...</div>
   </div>
+  <div id="category-status" class="category-info"></div>
 </div>
 
 <div id="auto-mode" style="display:none;">
@@ -300,6 +318,7 @@
 <script>
   const gallery = document.getElementById("gallery");
   const categoryButtons = document.getElementById("category-buttons");
+  const categoryStatus = document.getElementById("category-status");
   const lightbox = document.getElementById("lightbox");
   const lightboxImg = document.getElementById("lightbox-img");
   const toggleModeButton = document.getElementById("toggle-mode");
@@ -313,6 +332,60 @@
   let touchStartX = 0;
   let touchStartY = 0;
   let isAutoMode = false;
+  
+  // Demo amaçlı örnek resimler (gerçek bir uygulamada sunucu tarafında olacak)
+  const demoImages = {
+    "KayZen_01": [
+      "https://picsum.photos/id/10/300/200",
+      "https://picsum.photos/id/11/300/200",
+      "https://picsum.photos/id/12/300/200",
+      "https://picsum.photos/id/13/300/200",
+      "https://picsum.photos/id/14/300/200",
+      "https://picsum.photos/id/15/300/200"
+    ],
+    "KayZen_02": [
+      "https://picsum.photos/id/20/300/200", 
+      "https://picsum.photos/id/21/300/200",
+      "https://picsum.photos/id/22/300/200",
+      "https://picsum.photos/id/23/300/200"
+    ],
+    "KayZen_03": [
+      "https://picsum.photos/id/30/300/200",
+      "https://picsum.photos/id/31/300/200",
+      "https://picsum.photos/id/32/300/200",
+      "https://picsum.photos/id/33/300/200",
+      "https://picsum.photos/id/34/300/200"
+    ],
+    "KayZen_04": [
+      "https://picsum.photos/id/40/300/200",
+      "https://picsum.photos/id/41/300/200",
+      "https://picsum.photos/id/42/300/200"
+    ],
+    "KayZen_05": [
+      "https://picsum.photos/id/50/300/200",
+      "https://picsum.photos/id/51/300/200",
+      "https://picsum.photos/id/52/300/200",
+      "https://picsum.photos/id/53/300/200"
+    ],
+    "KayZen_06": [
+      "https://picsum.photos/id/60/300/200",
+      "https://picsum.photos/id/61/300/200",
+      "https://picsum.photos/id/62/300/200",
+      "https://picsum.photos/id/63/300/200",
+      "https://picsum.photos/id/64/300/200"
+    ],
+    "KayZen_07": [
+      "https://picsum.photos/id/70/300/200",
+      "https://picsum.photos/id/71/300/200",
+      "https://picsum.photos/id/72/300/200"
+    ],
+    "KayZen_08": [
+      "https://picsum.photos/id/80/300/200",
+      "https://picsum.photos/id/81/300/200",
+      "https://picsum.photos/id/82/300/200",
+      "https://picsum.photos/id/83/300/200"
+    ]
+  };
 
   // Mod değiştirme fonksiyonu
   toggleModeButton.addEventListener("click", function() {
@@ -417,7 +490,6 @@
       galleryData.categories[folder] = {
         "basePath": "main",
         "folder": folder,
-        // Range artık kullanılmıyor, otomatik algılama için klasör adı yeterli
         "autoDetect": true
       };
     });
@@ -484,134 +556,47 @@
       else prevImage();
     }
   });
-  
-  // Eski loadImageWithFallback fonksiyonu - range modunda hala gerekli olabilir
-  function loadImageWithFallback(basePath, folder, baseName) {
-    // Önce webp formatını dene
-    const tryWebp = new Image();
-    tryWebp.onload = () => appendImage(`${basePath}${folder}/${baseName}.webp`);
-    tryWebp.onerror = () => {
-      // Webp yoksa png dene
-      const tryPng = new Image();
-      tryPng.onload = () => appendImage(`${basePath}${folder}/${baseName}.png`);
-      tryPng.onerror = () => {
-        // jpg dene
-        const tryJpg = new Image();
-        tryJpg.onload = () => appendImage(`${basePath}${folder}/${baseName}.jpg`);
-        tryJpg.onerror = () => {
-          // Hiçbir format bulunamadı
-          console.log(`Resim bulunamadı: ${baseName}`);
-        };
-        tryJpg.src = `${basePath}${folder}/${baseName}.jpg`;
-      };
-      tryPng.src = `${basePath}${folder}/${baseName}.png`;
-    };
-    tryWebp.src = `${basePath}${folder}/${baseName}.webp`;
-  }
 
   function loadCategory(category) {
     gallery.innerHTML = '<div class="loading">Resimler yükleniyor...</div>';
+    categoryStatus.textContent = `'${category}' kategorisi yükleniyor...`;
     images = [];
     
     if (!galleryData || !galleryData.categories[category]) {
-      gallery.innerHTML = '<div class="loading">Kategori bulunamadı</div>';
+      gallery.innerHTML = '<div class="error-message">Kategori bulunamadı</div>';
+      categoryStatus.textContent = '';
       return;
     }
     
-    const categoryConfig = galleryData.categories[category];
-    const basePath = galleryData.basePaths[categoryConfig.basePath] || '';
-    const folder = categoryConfig.folder || category;
-    
-    gallery.innerHTML = '';
-    
-    if (categoryConfig.autoDetect) {
-      // Otomatik algılama modu - klasördeki tüm resimleri dinamik olarak yükler
-      loadImagesFromFolder(basePath, folder);
-    } else if (categoryConfig.range) {
-      // Eski yöntem - range değerlerine göre resimleri yükler
-      const [start, end] = categoryConfig.range;
-      for (let i = start; i <= end; i++) {
-        const baseName = `fooocus${i}`;
-        loadImageWithFallback(basePath, folder, baseName);
-      }
-    }
-  }
-  
-  // Klasördeki tüm resimleri algılayıp yükleyen yeni fonksiyon
-  function loadImagesFromFolder(basePath, folder) {
-    const folderPath = `${basePath}${folder}/`;
-    
-    // Bu kısım normalde sunucu taraflı yapılır ve klasör içeriği okunur
-    // Ancak statik web sitesinde bunu simüle etmek için AJAX kullanacağız
-    
-    // Resimleri almak için AJAX isteği yapalım - bu kısım sunucu taraflı bir API gerektirir
-    // Bu örnekte, klasörü simüle ediyoruz
-    
-    simulateFolderContents(folderPath, folder)
-      .then(fileList => {
-        if (fileList.length === 0) {
-          gallery.innerHTML = '<div class="loading">Bu klasörde resim bulunamadı</div>';
-          return;
-        }
+    // Demo resimlerini kullan
+    if (demoImages[category]) {
+      gallery.innerHTML = '';
+      images = [];
+      
+      // Demo resimlerini yükle
+      demoImages[category].forEach((imgSrc, index) => {
+        const img = document.createElement("img");
+        img.src = imgSrc;
+        img.alt = `${category} resim ${index+1}`;
+        img.loading = "lazy";
         
-        // Her dosyayı yükle
-        fileList.forEach(file => {
-          const img = new Image();
-          img.onload = () => {
-            appendImage(`${folderPath}${file}`);
-          };
-          img.onerror = () => {
-            console.log(`Resim yüklenemedi: ${file}`);
-          };
-          img.src = `${folderPath}${file}`;
+        img.addEventListener("click", () => {
+          currentIndex = index;
+          lightboxImg.src = img.src;
+          updateImageCounter();
+          lightbox.classList.add("active");
         });
-      })
-      .catch(error => {
-        console.error("Klasör içeriği okunamadı:", error);
-        gallery.innerHTML = '<div class="loading">Klasör içeriği okunamadı. Lütfen sunucu ayarlarınızı kontrol edin.</div>';
+        
+        gallery.appendChild(img);
+        images.push(img);
       });
-  }
-  
-  // Klasör içeriğini simüle eden fonksiyon - gerçek uygulamada bu sunucu taraflı olmalı
-  function simulateFolderContents(folderPath, folderName) {
-    return new Promise((resolve, reject) => {
-      // Burada normalde sunucu taraflı bir API'ye istek yapılır
-      // Ancak bu örnek için, klasör içeriğini simüle ediyoruz
       
-      // Örnekteki klasörlere göre simülasyon yapalım
-      let fileList = [];
-      
-      // Her klasör için farklı sayıda ve farklı isimlerde dosyalar üretelim
-      // Bu kısım gerçek uygulamada sunucudan gelen verilerle değiştirilmeli
-      const getRandomNumber = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
-      
-      if (folderName === "KayZen_01") {
-        // İlk kategori için 10-20 arası dosya
-        const count = getRandomNumber(10, 20);
-        for (let i = 1; i <= count; i++) {
-          fileList.push(`image${i}.jpg`);
-        }
-      } else if (folderName === "KayZen_02") {
-        // İkinci kategori için 15-25 arası dosya
-        const count = getRandomNumber(15, 25);
-        for (let i = 1; i <= count; i++) {
-          fileList.push(`photo${i}.jpg`);
-        }
-      } else {
-        // Diğer kategoriler için 5-30 arası dosya
-        const count = getRandomNumber(5, 30);
-        for (let i = 1; i <= count; i++) {
-          // Farklı dosya uzantıları kullanalım
-          const ext = [".jpg", ".png", ".webp"][getRandomNumber(0, 2)];
-          fileList.push(`${folderName}_image${i}${ext}`);
-        }
-      }
-      
-      // Gerçek bir uygulamada, bu kısım sunucudan gelen verileri işler
-      setTimeout(() => {
-        resolve(fileList);
-      }, 300); // Küçük bir gecikme ekleyerek gerçek dünya koşullarını simüle edelim
-    });
+      categoryStatus.textContent = `${category} kategorisinde ${images.length} resim gösteriliyor`;
+      updateImageCounter();
+    } else {
+      gallery.innerHTML = '<div class="error-message">Bu kategori için resim bulunamadı</div>';
+      categoryStatus.textContent = '';
+    }
   }
 
   // Dokunmatik alanlar için olay dinleyicileri
@@ -629,23 +614,6 @@
     }
     lastTap = currentTime;
   });
-
-  function appendImage(src) {
-    const img = document.createElement("img");
-    img.src = src;
-    img.alt = src.split('/').pop();
-    img.loading = "lazy"; // Lazy loading ile performans iyileştirmesi
-    
-    img.addEventListener("click", () => {
-      currentIndex = images.indexOf(img);
-      lightboxImg.src = img.src;
-      updateImageCounter();
-      lightbox.classList.add("active");
-    });
-    
-    gallery.appendChild(img);
-    images.push(img);
-  }
 
   // Sayfayı açtığımızda galeri verilerini yükle
   window.addEventListener('load', loadGalleryData);
