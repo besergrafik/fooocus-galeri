@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <title>Fooocus Kategori Galerisi</title>
+  <title>Fooocus GitHub Galeri</title>
   <meta name="robots" content="noindex, nofollow">
   <style>
     body {
@@ -38,17 +38,23 @@
     .filters button:hover {
       background-color: #ffd2dc;
     }
+    .filters button.active {
+      background-color: #ffb6c1;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
     .gallery {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
       gap: 15px;
-      max-width: 900px;
+      max-width: 1200px;
       margin: 0 auto;
       padding: 20px;
     }
     .gallery img {
-      width: 100px;
+      width: 150px;
+      height: 150px;
+      object-fit: cover;
       cursor: pointer;
       border-radius: 8px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.3);
@@ -145,12 +151,6 @@
       z-index: 10001;
       pointer-events: none;
     }
-    @media (max-width: 768px) {
-      .lightbox img {
-        max-width: 100%;
-        max-height: 80%;
-      }
-    }
     .swipe-area {
       position: absolute;
       top: 0;
@@ -171,92 +171,6 @@
       font-size: 18px;
       color: #666;
     }
-    .nav-buttons {
-      position: absolute;
-      width: 100%;
-      display: flex;
-      justify-content: space-between;
-      top: 50%;
-      transform: translateY(-50%);
-      padding: 0 20px;
-      box-sizing: border-box;
-    }
-    .nav-button {
-      background: rgba(255,255,255,0.2);
-      color: white;
-      border: none;
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      font-size: 20px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .nav-button:hover {
-      background: rgba(255,255,255,0.4);
-    }
-    /* Yeni stil eklendi */
-    .file-input-container {
-      text-align: center;
-      margin: 20px auto;
-      max-width: 600px;
-      background-color: #ffffffcc;
-      padding: 15px;
-      border-radius: 10px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-    .file-input {
-      display: none;
-    }
-    .file-input-label {
-      display: inline-block;
-      padding: 10px 20px;
-      background-color: #ff90a1;
-      color: white;
-      border-radius: 30px;
-      cursor: pointer;
-      font-weight: bold;
-      transition: all 0.3s;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-    .file-input-label:hover {
-      background-color: #ff7a8e;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-    }
-    .toggle-mode {
-      display: block;
-      text-align: center;
-      margin: 20px auto;
-      padding: 10px 20px;
-      background-color: #90a1ff;
-      color: white;
-      border: none;
-      border-radius: 30px;
-      cursor: pointer;
-      font-weight: bold;
-      transition: all 0.3s;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-    .toggle-mode:hover {
-      background-color: #7a8eff;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-    }
-    .mode-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-    .mode-label {
-      font-weight: bold;
-      color: #666;
-    }
-    /* Hata mesajları için stil */
     .error-message {
       text-align: center;
       color: #ff4757;
@@ -266,40 +180,64 @@
       margin: 10px auto;
       max-width: 80%;
     }
-    /* Kategori durum mesajları */
     .category-info {
       text-align: center;
       font-style: italic;
       color: #666;
       margin: 10px 0;
     }
+    .image-wrapper {
+      position: relative;
+    }
+    .image-wrapper .image-name {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0,0,0,0.5);
+      color: white;
+      font-size: 12px;
+      padding: 3px;
+      text-align: center;
+      border-radius: 0 0 8px 8px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .image-wrapper:hover .image-name {
+      opacity: 1;
+    }
+    .preloader {
+      width: 50px;
+      height: 50px;
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid #ff90a1;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
 
-<h1>Fooocus Galerim</h1>
+<h1>Fooocus GitHub Galeri</h1>
 
-<div class="mode-container">
-  <span class="mode-label">Mod:</span>
-  <button class="toggle-mode" id="toggle-mode">Otomatik Algılama Moduna Geç</button>
+<div class="filters" id="category-buttons">
+  <div class="preloader"></div>
+  <div class="loading">Kategoriler yükleniyor...</div>
 </div>
 
-<div id="manual-mode">
-  <div class="filters" id="category-buttons">
-    <div class="loading">Kategoriler yükleniyor...</div>
-  </div>
-  <div id="category-status" class="category-info"></div>
-</div>
+<div id="category-status" class="category-info"></div>
 
-<div id="auto-mode" style="display:none;">
-  <div class="file-input-container">
-    <label for="folder-input" class="file-input-label">Klasör veya Resimler Seçin</label>
-    <input type="file" id="folder-input" class="file-input" multiple accept="image/*">
-    <p style="margin-top: 10px; color: #666;">Klasör içerisindeki resimler otomatik olarak algılanacaktır.</p>
-  </div>
+<div class="gallery" id="gallery">
+  <div class="loading">Lütfen yukarıdan bir kategori seçin</div>
 </div>
-
-<div class="gallery" id="gallery"></div>
 
 <div class="lightbox" id="lightbox">
   <div class="lightbox-content">
@@ -321,192 +259,150 @@
   const categoryStatus = document.getElementById("category-status");
   const lightbox = document.getElementById("lightbox");
   const lightboxImg = document.getElementById("lightbox-img");
-  const toggleModeButton = document.getElementById("toggle-mode");
-  const manualModeDiv = document.getElementById("manual-mode");
-  const autoModeDiv = document.getElementById("auto-mode");
-  const folderInput = document.getElementById("folder-input");
   
   let images = [];
   let currentIndex = 0;
   let galleryData = null;
   let touchStartX = 0;
   let touchStartY = 0;
-  let isAutoMode = false;
+  let currentCategory = null;
   
-  // Demo amaçlı örnek resimler (gerçek bir uygulamada sunucu tarafında olacak)
-  const demoImages = {
-    "KayZen_01": [
-      "https://picsum.photos/id/10/300/200",
-      "https://picsum.photos/id/11/300/200",
-      "https://picsum.photos/id/12/300/200",
-      "https://picsum.photos/id/13/300/200",
-      "https://picsum.photos/id/14/300/200",
-      "https://picsum.photos/id/15/300/200"
-    ],
-    "KayZen_02": [
-      "https://picsum.photos/id/20/300/200", 
-      "https://picsum.photos/id/21/300/200",
-      "https://picsum.photos/id/22/300/200",
-      "https://picsum.photos/id/23/300/200"
-    ],
-    "KayZen_03": [
-      "https://picsum.photos/id/30/300/200",
-      "https://picsum.photos/id/31/300/200",
-      "https://picsum.photos/id/32/300/200",
-      "https://picsum.photos/id/33/300/200",
-      "https://picsum.photos/id/34/300/200"
-    ],
-    "KayZen_04": [
-      "https://picsum.photos/id/40/300/200",
-      "https://picsum.photos/id/41/300/200",
-      "https://picsum.photos/id/42/300/200"
-    ],
-    "KayZen_05": [
-      "https://picsum.photos/id/50/300/200",
-      "https://picsum.photos/id/51/300/200",
-      "https://picsum.photos/id/52/300/200",
-      "https://picsum.photos/id/53/300/200"
-    ],
-    "KayZen_06": [
-      "https://picsum.photos/id/60/300/200",
-      "https://picsum.photos/id/61/300/200",
-      "https://picsum.photos/id/62/300/200",
-      "https://picsum.photos/id/63/300/200",
-      "https://picsum.photos/id/64/300/200"
-    ],
-    "KayZen_07": [
-      "https://picsum.photos/id/70/300/200",
-      "https://picsum.photos/id/71/300/200",
-      "https://picsum.photos/id/72/300/200"
-    ],
-    "KayZen_08": [
-      "https://picsum.photos/id/80/300/200",
-      "https://picsum.photos/id/81/300/200",
-      "https://picsum.photos/id/82/300/200",
-      "https://picsum.photos/id/83/300/200"
-    ]
-  };
-
-  // Mod değiştirme fonksiyonu
-  toggleModeButton.addEventListener("click", function() {
-    isAutoMode = !isAutoMode;
-    if (isAutoMode) {
-      manualModeDiv.style.display = "none";
-      autoModeDiv.style.display = "block";
-      toggleModeButton.textContent = "Manuel Kategorilere Dön";
-      gallery.innerHTML = '<div class="loading">Lütfen resimleri içeren bir klasör seçin</div>';
-    } else {
-      manualModeDiv.style.display = "block";
-      autoModeDiv.style.display = "none";
-      toggleModeButton.textContent = "Otomatik Algılama Moduna Geç";
-      gallery.innerHTML = '<div class="loading">Lütfen yukarıdan bir kategori seçin</div>';
-    }
-  });
-
-  // Klasör input olayı
-  folderInput.addEventListener("change", handleFileSelect);
-
-  function handleFileSelect(e) {
-    const files = e.target.files;
-    
-    if (!files || files.length === 0) {
-      gallery.innerHTML = '<div class="loading">Hiçbir dosya seçilmedi</div>';
-      return;
-    }
-
-    gallery.innerHTML = '<div class="loading">Resimler yükleniyor...</div>';
-    
-    // Sadece resim dosyalarını filtrele
-    const imageFiles = Array.from(files).filter(file => 
-      file.type.startsWith('image/')
-    );
-    
-    if (imageFiles.length === 0) {
-      gallery.innerHTML = '<div class="loading">Seçilen klasörde resim dosyası bulunamadı</div>';
-      return;
-    }
-    
-    // Galeriyi temizle ve yeni resimleri yükle
-    gallery.innerHTML = '';
-    images = [];
-    
-    // Her resim için FileReader kullan
-    imageFiles.forEach((file, index) => {
-      const reader = new FileReader();
+  // GitHub API bilgileri
+  const githubRepoOwner = "besergrafik";
+  const githubRepo = "fooocus-galeri";
+  const githubBranch = "main";
+  const baseFolder = "resimler";
+  
+  // GitHub kategorileri (klasörler)
+  const categoryFolders = [
+    "KayZen_01", "KayZen_02", "KayZen_03", "KayZen_04", 
+    "KayZen_05", "KayZen_06", "KayZen_07", "KayZen_08"
+  ];
+  
+  // GitHub'dan içerik almak için fonksiyon
+  async function fetchGitHubContent(path) {
+    const apiUrl = `https://api.github.com/repos/${githubRepoOwner}/${githubRepo}/contents/${path}?ref=${githubBranch}`;
+    try {
+      const response = await fetch(apiUrl);
       
-      reader.onload = (e) => {
+      if (!response.ok) {
+        throw new Error(`GitHub API hatası: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      return data;
+      
+    } catch (error) {
+      console.error("GitHub içeriği alınırken hata oluştu:", error);
+      throw error;
+    }
+  }
+  
+  // Raw GitHub görüntü URL'sini alır
+  function getRawImageUrl(contentUrl) {
+    return contentUrl.replace("github.com", "raw.githubusercontent.com")
+                    .replace("/blob/", "/");
+  }
+  
+  // Kategorileri yükle
+  async function loadCategories() {
+    try {
+      categoryButtons.innerHTML = '';
+      
+      // Her kategori için buton oluştur
+      for (const folder of categoryFolders) {
+        const button = document.createElement('button');
+        button.textContent = folder;
+        button.dataset.category = folder;
+        button.addEventListener('click', function() {
+          // Aktif kategori butonunu güncelle
+          document.querySelectorAll('.filters button').forEach(btn => {
+            btn.classList.remove('active');
+          });
+          this.classList.add('active');
+          
+          loadCategory(folder);
+        });
+        categoryButtons.appendChild(button);
+      }
+      
+    } catch (error) {
+      categoryButtons.innerHTML = `<div class="error-message">Kategoriler yüklenirken hata oluştu: ${error.message}</div>`;
+    }
+  }
+  
+  // Kategori içeriğini yükle
+  async function loadCategory(category) {
+    gallery.innerHTML = '<div class="preloader"></div><div class="loading">Resimler yükleniyor...</div>';
+    categoryStatus.textContent = `'${category}' kategorisi yükleniyor...`;
+    images = [];
+    currentCategory = category;
+    
+    try {
+      // GitHub API'den klasör içeriğini al
+      const folderPath = `${baseFolder}/${category}`;
+      const content = await fetchGitHubContent(folderPath);
+      
+      // Sadece resim dosyalarını filtrele
+      const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+      const imageFiles = content.filter(item => 
+        item.type === "file" && 
+        imageExtensions.some(ext => item.name.toLowerCase().endsWith(ext))
+      );
+      
+      if (imageFiles.length === 0) {
+        gallery.innerHTML = '<div class="error-message">Bu kategoride resim bulunamadı</div>';
+        categoryStatus.textContent = '';
+        return;
+      }
+      
+      // Galeriyi temizle
+      gallery.innerHTML = '';
+      
+      // Her resim için
+      imageFiles.forEach((file, index) => {
+        const imageWrapper = document.createElement("div");
+        imageWrapper.className = "image-wrapper";
+        
         const img = document.createElement("img");
-        img.src = e.target.result;
+        // GitHub Raw URL'i kullan (blob yerine raw)
+        const rawUrl = file.download_url;
+        
+        img.src = rawUrl;
         img.alt = file.name;
         img.loading = "lazy";
+        img.dataset.name = file.name;
+        
+        const imageName = document.createElement("div");
+        imageName.className = "image-name";
+        imageName.textContent = file.name;
         
         img.addEventListener("click", () => {
-          currentIndex = images.indexOf(img);
-          lightboxImg.src = img.src;
+          currentIndex = index;
+          lightboxImg.src = rawUrl;
           updateImageCounter();
           lightbox.classList.add("active");
         });
         
-        gallery.appendChild(img);
-        images.push(img);
-        
-        // Son resim yüklendiğinde sayacı güncelle
-        if (index === imageFiles.length - 1) {
-          updateImageCounter();
-        }
-      };
+        imageWrapper.appendChild(img);
+        imageWrapper.appendChild(imageName);
+        gallery.appendChild(imageWrapper);
+        images.push({
+          element: img,
+          src: rawUrl,
+          name: file.name
+        });
+      });
       
-      reader.onerror = () => {
-        console.error(`Dosya okunamadı: ${file.name}`);
-      };
+      categoryStatus.textContent = `${category} kategorisinde ${imageFiles.length} resim gösteriliyor`;
+      updateImageCounter();
       
-      reader.readAsDataURL(file);
-    });
+    } catch (error) {
+      gallery.innerHTML = `<div class="error-message">Resimler yüklenirken hata oluştu: ${error.message}</div>`;
+      categoryStatus.textContent = '';
+    }
   }
-
-  // Galeri verilerini doğrudan içine yerleştiriyoruz
-  function loadGalleryData() {
-    // Ana klasör yapısını tanımla
-    const mainFolder = "resimler/";
-    
-    // Kategori klasörlerini otomatik algıla (normalde sunucu tarafında yapılır)
-    // Bu örnekte, manuel olarak klasör listesini tanımlıyorum,
-    // gerçek bir sunucuda klasör içeriğini okuyan bir API kullanılabilir
-    const categoryFolders = [
-      "KayZen_01", "KayZen_02", "KayZen_03", "KayZen_04", 
-      "KayZen_05", "KayZen_06", "KayZen_07", "KayZen_08"
-    ];
-    
-    // Veri yapısını oluştur (klasör bazlı)
-    galleryData = {
-      "basePaths": {
-        "main": mainFolder
-      },
-      "categories": {}
-    };
-    
-    // Her bir kategori klasörü için, kategorileri oluştur
-    categoryFolders.forEach(folder => {
-      galleryData.categories[folder] = {
-        "basePath": "main",
-        "folder": folder,
-        "autoDetect": true
-      };
-    });
-    
-    // Kategori butonlarını oluştur
-    categoryButtons.innerHTML = '';
-    Object.keys(galleryData.categories).forEach(category => {
-      const button = document.createElement('button');
-      button.textContent = category;
-      button.onclick = () => loadCategory(category);
-      categoryButtons.appendChild(button);
-    });
-    
-    // Ana sayfada galeri boş olsun, sadece butonları gösterelim
-    gallery.innerHTML = '<div class="loading">Lütfen yukarıdan bir kategori seçin</div>';
-  }
-
+  
   function nextImage() {
     if (images.length === 0) return;
     currentIndex = (currentIndex + 1) % images.length;
@@ -522,7 +418,12 @@
   }
 
   function updateImageCounter() {
-    document.getElementById('image-counter').textContent = `${currentIndex + 1} / ${images.length}`;
+    if (images.length === 0) {
+      document.getElementById('image-counter').textContent = "0 / 0";
+    } else {
+      const imageName = images[currentIndex].name || "";
+      document.getElementById('image-counter').textContent = `${currentIndex + 1} / ${images.length} - ${imageName}`;
+    }
   }
 
   function closeLightbox() {
@@ -557,48 +458,6 @@
     }
   });
 
-  function loadCategory(category) {
-    gallery.innerHTML = '<div class="loading">Resimler yükleniyor...</div>';
-    categoryStatus.textContent = `'${category}' kategorisi yükleniyor...`;
-    images = [];
-    
-    if (!galleryData || !galleryData.categories[category]) {
-      gallery.innerHTML = '<div class="error-message">Kategori bulunamadı</div>';
-      categoryStatus.textContent = '';
-      return;
-    }
-    
-    // Demo resimlerini kullan
-    if (demoImages[category]) {
-      gallery.innerHTML = '';
-      images = [];
-      
-      // Demo resimlerini yükle
-      demoImages[category].forEach((imgSrc, index) => {
-        const img = document.createElement("img");
-        img.src = imgSrc;
-        img.alt = `${category} resim ${index+1}`;
-        img.loading = "lazy";
-        
-        img.addEventListener("click", () => {
-          currentIndex = index;
-          lightboxImg.src = img.src;
-          updateImageCounter();
-          lightbox.classList.add("active");
-        });
-        
-        gallery.appendChild(img);
-        images.push(img);
-      });
-      
-      categoryStatus.textContent = `${category} kategorisinde ${images.length} resim gösteriliyor`;
-      updateImageCounter();
-    } else {
-      gallery.innerHTML = '<div class="error-message">Bu kategori için resim bulunamadı</div>';
-      categoryStatus.textContent = '';
-    }
-  }
-
   // Dokunmatik alanlar için olay dinleyicileri
   document.getElementById('swipe-left').addEventListener('click', prevImage);
   document.getElementById('swipe-right').addEventListener('click', nextImage);
@@ -615,8 +474,8 @@
     lastTap = currentTime;
   });
 
-  // Sayfayı açtığımızda galeri verilerini yükle
-  window.addEventListener('load', loadGalleryData);
+  // Sayfa yüklendiğinde kategorileri yükle
+  window.addEventListener('load', loadCategories);
 </script>
 
 </body>
